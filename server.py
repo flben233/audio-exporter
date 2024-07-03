@@ -37,7 +37,7 @@ def send_data(udp_socket: socket, data_queue: list, client_addr: tuple, lock: mu
 def server():
     print(f"Waiting for connection...")
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    udp_socket.bind(("0.0.0.0", 39391))
+    udp_socket.bind(("0.0.0.0", 39393))
     data, client_addr = udp_socket.recvfrom(1024)
     while data.decode() != "hello":
         data, client_addr = udp_socket.recvfrom(1024)

@@ -39,7 +39,7 @@ def recv_data(udp_socket: socket, addr: str, data_queue: list, lock: multiproces
 
 
 def client(address: str):
-    server_addr = (address, 39391)
+    server_addr = (address, 39393)
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udp_socket.settimeout(3)
     data, addr = None, None
