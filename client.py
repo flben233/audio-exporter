@@ -1,8 +1,15 @@
 import multiprocessing
 import socket
-from time import sleep
 import numpy as np
 import soundcard as sc
+from notifypy import Notify
+
+
+def send_notification(text: str):
+    notification = Notify()
+    notification.title = "小雨妙享-音频串流"
+    notification.message = text
+    notification.send()
 
 
 def play_data(data_queue: list, lock: multiprocessing.Lock):
@@ -18,7 +25,7 @@ def play_data(data_queue: list, lock: multiprocessing.Lock):
                 try:
                     # d.resize((480, 2))
                     pass
-                except ValueError as e:
+                except ValueError:
                     print(f"Invalid shape: {d.shape}")
                     continue
                 p.play(d)
@@ -40,9 +47,11 @@ def recv_data(tcp_socket: socket, data_queue: list, lock: multiprocessing.Lock):
 
 
 def client(address: str):
+    send_notification(f"正在连接至{address}")
     server_addr = (address, 39393)
     tcp_socket = socket.create_connection(server_addr)
     print(f"Connected")
+    send_notification(f"已连接至{address}")
     data_queue = multiprocessing.Manager().list()
     share_lock = multiprocessing.Manager().Lock()
     multiprocessing.Process(target=play_data, args=(data_queue, share_lock)).start()
