@@ -24,7 +24,7 @@ def init_loopback_device():
     return sc.default_microphone()
 
 
-def send_data(udp_socket: socket, data_queue: list, client_addr: tuple, lock: multiprocessing.Lock):
+def send_data(tcp_socket: socket, data_queue: list, client_addr: tuple, lock: multiprocessing.Lock):
     while True:
         if len(data_queue) > 0:
             lock.acquire()
@@ -32,27 +32,23 @@ def send_data(udp_socket: socket, data_queue: list, client_addr: tuple, lock: mu
             lock.release()
             data = data.astype("float32")
             if data.any():
-                data_chunks = np.split(data, 20)
-                for chunk in data_chunks:
-                    udp_socket.sendto(chunk.tobytes(), client_addr)
-                # udp_socket.sendto(data.tobytes(), client_addr)
+                # data_chunks = np.split(data, 20)
+                # for chunk in data_chunks:
+                #     tcp_socket.send(chunk.tobytes())
+                tcp_socket.send(data.tobytes())
 
 
 def server():
     print(f"Waiting for connection...")
-    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    udp_socket.bind(("0.0.0.0", 39393))
-    data, client_addr = udp_socket.recvfrom(1024)
-    while data.decode() != "hello":
-        data, client_addr = udp_socket.recvfrom(1024)
-    udp_socket.sendto("hello".encode(), client_addr)
+    tcp_socket = socket.create_server(("0.0.0.0", 39393))
+    tcp_socket, client_addr = tcp_socket.accept()
     print("Connected")
     print(f"Client address: {client_addr}")
     loopback_device = init_loopback_device()
     data_queue = multiprocessing.Manager().list()
     share_lock = multiprocessing.Manager().Lock()
     multiprocessing.Process(target=get_audio_slice, args=(loopback_device, data_queue, share_lock)).start()
-    send_data(udp_socket, data_queue, client_addr, share_lock)
+    send_data(tcp_socket, data_queue, client_addr, share_lock)
 
 
 if __name__ == '__main__':
